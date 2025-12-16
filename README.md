@@ -1,56 +1,51 @@
-# Modulo-Reservas-Espacios
-📚 DOCUMENTACIÓN – MÓDULO DE SEDES Y ESPACIOS
+# 📚 DOCUMENTACIÓN - MÓDULO RESERVAS Y ESTACIONAMIENTO
 
-Autor: Diego Heredia
-Fecha: Diciembre 2025
-Tecnología: Spring Boot 3.5.8 + Java 17
+**Autor:** Diego Heredia
+**Fecha:** Diciembre 2025  
+**Tecnología:** Spring Boot 3.5.8 + Java 17
 
-📖 ÍNDICE
+---
 
-Resumen Ejecutivo
+## 📖 ÍNDICE
 
-Arquitectura
+1. [Resumen Ejecutivo](#resumen)
+2. [Arquitectura](#arquitectura)
+3. [Patrones de Diseño](#patrones)
+4. [Componentes Implementados](#componentes)
+5. [Endpoints REST](#endpoints)
+6. [Sedes y Espacios](#sedes-espacios)
+7. [Disponibilidad de Espacios](#disponibilidad)
+8. [Instalación y Uso](#instalacion)
 
-Patrones de Diseño
+---
 
-Componentes Implementados
+## 1. RESUMEN EJECUTIVO <a id="resumen"></a>
 
-Endpoints REST
+### 1.1 Alcance del Módulo
 
-Disponibilidad de Espacios
+Este módulo implementa la funcionalidad completa de:
+- ✅ Gestion de Sedes y Espacios
+- ✅ Filtrado de Disponinibilidad de Espacios
+- ✅ Estados de espacio (DISPONIBLE, OCUPADO)
+- ✅ Creación masiva de espacios por sede
 
-Validaciones
+### 1.2 Métricas del Proyecto
 
-Instalación y Uso
+| Métrica | Cantidad |
+|---------|----------|
+| **Endpoints REST** | 12 |
+| **Modelos** | 2 |
+| **Services** | 2 |
+| **Controllers** | 2 |
+| **Patrones de Diseño** | 2 |
 
-1. RESUMEN EJECUTIVO <a id="resumen"></a>
-1.1 Alcance del Módulo
+---
 
-Este módulo implementa la funcionalidad de:
+## 2. ARQUITECTURA <a id="arquitectura"></a>
 
-✅ Gestión de Sedes
+### 2.1 Arquitectura en Capas
 
-✅ Gestión de Espacios de Estacionamiento
-
-✅ Estados en tiempo real (DISPONIBLE, OCUPADO)
-
-✅ Creación masiva de espacios
-
-✅ Consulta de disponibilidad
-
-✅ Filtrado dinámico mediante patrones de diseño
-
-Los datos se manejan en tiempo de ejecución, sin base de datos, para simplificar el proyecto académico.
-
-1.2 Métricas del Proyecto
-Métrica	Cantidad
-Endpoints REST	12
-Modelos	3
-Services	2
-Controllers	2
-Patrones de Diseño	2
-2. ARQUITECTURA <a id="arquitectura"></a>
-2.1 Arquitectura en Capas
+```
 ┌─────────────────────────────────────┐
 │         CAPA PRESENTACIÓN           │
 │   (Controllers - REST API)          │
@@ -59,11 +54,14 @@ Patrones de Diseño	2
 │   (Services + Strategy + Factory)   │
 ├─────────────────────────────────────┤
 │         CAPA DOMINIO                │
-│   (Models)                          │
+│   (Models + Enums)                  │
 └─────────────────────────────────────┘
+```
 
-2.2 Estructura de Paquetes
-com.reservas.estacionamiento/
+### 2.2 Estructura de Paquetes
+
+```
+com.parking.system/
 ├── controller/
 │   ├── SedeController.java
 │   └── EspacioController.java
@@ -82,140 +80,656 @@ com.reservas.estacionamiento/
 │   ├── DiscapacitadoEspacioFactory.java
 │   ├── VIPEspacioFactory.java
 │   └── EspacioFactoryProvider.java
+├── mapper/
+│   ├── ReservaMapper.java
+│   ├── CheckInMapper.java
+│   ├── CheckOutMapper.java
+│   └── PaseMensualMapper.java
 └── strategy/
     ├── DisponibilidadStrategy.java
     ├── DisponibilidadPorTipo.java
     ├── DisponibilidadPorEstado.java
+    ├── DisponibilidadPorHorario.java
     └── DisponibilidadTotal.java
 
-3. PATRONES DE DISEÑO <a id="patrones"></a>
-3.1 Factory Method ⭐
+```
 
-Propósito:
-Encapsular la creación de objetos Espacio según su tipo.
+---
 
-Implementación:
+## 2.3 Diagramas UML
 
-EspacioFactory define el método crearEspacio
+### Diagrama 1: Módulo de Sedes y Espacios
 
-Cada tipo de espacio tiene su propia fábrica concreta
+**Muestra:**
+- Modelos: Sede, Espacio
+- Controllers y Services
+- Relación Sede → Espacios
+- Estados y tipos de espacio
 
-EspacioFactoryProvider selecciona la fábrica correcta según TipoEspacio
+---
 
-Beneficios:
+### Diagrama 2: Módulo de Pases Mensuales
 
-✅ Elimina if / switch repetidos
+![Diagrama de Pases Mensuales](./Pases%20mensuales.jpg)
 
-✅ Centraliza la creación de objetos
+**Muestra:**
+- Modelo PaseMensual
+- Implementación del Strategy Pattern
+- Cálculo dinámico de precios
+- Tipos: Básico, Premium, Empresarial
+- DTOs Request/Response
+- Mapper
 
-✅ Cumple Open/Closed Principle
+---
 
-3.2 Strategy Pattern ⭐
+## 3. PATRONES DE DISEÑO <a id="patrones"></a>
 
-Propósito:
-Permitir múltiples criterios de filtrado de espacios de forma dinámica.
+### 3.1 Strategy Pattern ⭐
 
-Estrategias implementadas:
+**Propósito:** Calcular precios de pases mensuales según el tipo.
 
-Disponibilidad por tipo
-
-Disponibilidad por estado
-
-Disponibilidad total (sin filtro)
-
-Beneficios:
-
-✅ Cada filtro es una clase independiente
-
-✅ Fácil combinación de filtros
-
-✅ Código extensible y mantenible
-
-✅ Cumple SRP y OCP de SOLID
-
-4. COMPONENTES IMPLEMENTADOS <a id="componentes"></a>
-4.1 Modelos
-Sede
-public class Sede {
-    private int id;
-    private String nombre;
-    private String direccion;
-    private String ciudad;
+**Implementación:**
+```java
+// Interfaz Strategy
+public interface PrecioPaseStrategy {
+    BigDecimal calcularPrecio();
+    String getTipo();
 }
 
-Espacio
-public class Espacio {
-    private int id;
-    private int numero;
-    private TipoEspacio tipo;
-    private EstadoEspacio estado;
-    private int sedeId;
+// Estrategia Concreta
+@Component
+public class PrecioPremiumStrategy implements PrecioPaseStrategy {
+    public BigDecimal calcularPrecio() {
+        return new BigDecimal("300.00");
+    }
 }
 
-4.2 Servicios
-SedeService
+// Context
+@Component
+public class PrecioPaseContext {
+    public BigDecimal calcularPrecio(String tipo) {
+        return strategies.get(tipo).calcularPrecio();
+    }
+}
+```
 
-Crear, listar, actualizar y eliminar sedes
+**Beneficios:**
+- ✅ Fácil agregar nuevos tipos de pases
+- ✅ Desacopla lógica de cálculo
+- ✅ Cumple Open/Closed Principle
 
-Gestión en memoria
+---
 
-EspacioService
+### 3.2 DTO Pattern
 
-Crear espacios individuales o masivos
+**Propósito:** Separar representación API de modelo de dominio.
 
-Actualizar estado de espacios
+**Ejemplo:**
+```java
+// Request (entrada)
+public class CrearReservaRequest {
+    private Long usuarioId;
+    private Long espacioId;
+    private LocalDateTime fechaInicio;
+    private LocalDateTime fechaFin;
+}
 
-Filtrar disponibilidad usando Strategy
+// Response (salida)
+public class ReservaResponse {
+    private Long id;
+    private String qrCode;
+    private String estado;
+    // ... más campos
+}
+```
 
-5. ENDPOINTS REST <a id="endpoints"></a>
-5.1 Sedes
-Método	Endpoint	Descripción
-GET	/sedes	Listar todas las sedes
-POST	/sedes	Crear sede
-GET	/sedes/{id}	Obtener sede
-PUT	/sedes/{id}	Actualizar sede
-DELETE	/sedes/{id}	Eliminar sede
-5.2 Espacios
-Método	Endpoint	Descripción
-GET	/espacios	Listar espacios
-POST	/espacios	Crear espacio
-GET	/espacios/sede/{id}	Espacios por sede
-PUT	/espacios/{id}/estado	Cambiar estado
-DELETE	/espacios/{id}	Eliminar espacio
-POST	/espacios/crearMuchos/{sedeId}	Crear espacios masivos
-6. DISPONIBILIDAD DE ESPACIOS <a id="disponibilidad"></a>
-Ejemplo: Filtrar por tipo y disponibilidad
-GET /espacios/filtrar/tipo/AUTO
+**Beneficios:**
+- ✅ Control sobre datos expuestos en API
+- ✅ Validación independiente
+- ✅ Evolución independiente de API y dominio
 
+---
 
-Resultado:
-Solo espacios tipo AUTO con estado DISPONIBLE.
+### 3.3 Mapper Pattern
 
-El filtrado se logra combinando estrategias, sin lógica condicional en el controlador.
+**Propósito:** Convertir entre Models y DTOs.
 
-7. VALIDACIONES <a id="validaciones"></a>
+**Ejemplo:**
+```java
+@Component
+public class ReservaMapper {
+    public ReservaResponse toResponse(Reserva reserva) {
+        ReservaResponse response = new ReservaResponse();
+        response.setId(reserva.getId());
+        response.setQrCode(reserva.getQrCode());
+        response.setEstado(reserva.getEstado());
+        return response;
+    }
+}
+```
 
-ID de sede debe existir
+**Beneficios:**
+- ✅ Responsabilidad única
+- ✅ Reusabilidad
+- ✅ Fácil testing
 
-Tipo de espacio válido
+---
 
-Estado válido
+### 3.4 Service Layer Pattern
 
-No se permite actualizar espacios inexistentes
+**Propósito:** Centralizar lógica de negocio.
 
-8. INSTALACIÓN Y USO <a id="instalacion"></a>
-8.1 Requisitos
+**Características:**
+- Todas las validaciones en Services
+- Controllers solo delegan
+- Transaccionalidad (preparado para @Transactional)
 
-Java 17+
+---
 
-Gradle
+### 3.5 Dependency Injection
 
-Puerto 8080 libre
+**Propósito:** Inversión de control y bajo acoplamiento.
 
-8.2 Ejecutar
+**Ejemplo:**
+```java
+@Service
+public class ReservaService {
+    private final QRCodeGenerator qrCodeGenerator;
+    
+    // Constructor injection
+    public ReservaService(QRCodeGenerator qrCodeGenerator) {
+        this.qrCodeGenerator = qrCodeGenerator;
+    }
+}
+```
+
+---
+
+## 4. COMPONENTES IMPLEMENTADOS <a id="componentes"></a>
+
+### 4.1 Modelos
+
+#### **Reserva**
+```java
+public class Reserva {
+    private Long id;
+    private Long usuarioId;
+    private Long espacioId;
+    private LocalDateTime fechaInicio;
+    private LocalDateTime fechaFin;
+    private String estado; // CONFIRMADA, EN_USO, COMPLETADA, CANCELADA
+    private String qrCode;
+    private LocalDateTime fechaCreacion;
+}
+```
+
+**Estados:**
+```
+CONFIRMADA → (check-in) → EN_USO → (check-out) → COMPLETADA
+           ↘ (cancelar) → CANCELADA
+```
+
+#### **CheckIn**
+```java
+public class CheckIn {
+    private Long id;
+    private Long reservaId;
+    private LocalDateTime horaEntrada;
+    private String dispositivoId;
+}
+```
+
+#### **CheckOut**
+```java
+public class CheckOut {
+    private Long id;
+    private Long reservaId;
+    private LocalDateTime horaSalida;
+    private Long tiempoTotalMinutos;
+}
+```
+
+#### **PaseMensual**
+```java
+public class PaseMensual {
+    private Long id;
+    private Long usuarioId;
+    private String tipo; // BASICO, PREMIUM, EMPRESARIAL
+    private Long espacioAsignado;
+    private LocalDateTime fechaInicio;
+    private LocalDateTime fechaVencimiento;
+    private BigDecimal precio;
+    private String estado; // ACTIVO, VENCIDO, CANCELADO
+}
+```
+
+---
+
+### 4.2 Servicios
+
+#### **ReservaService**
+
+**Responsabilidades:**
+- Crear reservas con validaciones
+- Generar códigos QR automáticamente
+- Verificar disponibilidad de espacios
+- Gestionar estados de reserva
+
+**Validaciones Implementadas:**
+1. Fecha inicio < fecha fin
+2. Mínimo 1 hora de anticipación
+3. Máximo 12 horas de duración
+4. Espacio disponible (sin solapamiento)
+
+**Método clave:**
+```java
+public Reserva crearReserva(Long usuarioId, Long espacioId, 
+                           LocalDateTime fechaInicio, LocalDateTime fechaFin) {
+    // Validaciones
+    validarFechas(fechaInicio, fechaFin);
+    validarAnticipacion(fechaInicio);
+    validarDuracion(fechaInicio, fechaFin);
+    verificarDisponibilidad(espacioId, fechaInicio, fechaFin);
+    
+    // Crear y generar QR
+    Reserva reserva = new Reserva();
+    reserva.setQrCode(qrCodeGenerator.generarCodigo(id, fechaInicio));
+    return reserva;
+}
+```
+
+---
+
+#### **CheckInService**
+
+**Responsabilidades:**
+- Registrar entrada de vehículo
+- Validar estado de reserva
+- Actualizar estado a EN_USO
+- Soportar entrada por QR
+
+**Flujos:**
+1. Check-in por ID de reserva
+2. Check-in por código QR (lector físico)
+
+---
+
+#### **CheckOutService**
+
+**Responsabilidades:**
+- Registrar salida de vehículo
+- Calcular tiempo total de estancia
+- Actualizar estado a COMPLETADA
+
+**Cálculo de tiempo:**
+```java
+Duration duracion = Duration.between(checkIn.getHoraEntrada(), LocalDateTime.now());
+long minutos = duracion.toMinutes();
+```
+
+---
+
+#### **PaseMensualService**
+
+**Responsabilidades:**
+- Crear pases con Strategy Pattern
+- Calcular precio según tipo
+- Gestionar vigencia (30 días)
+- Renovar pases
+
+**Uso de Strategy:**
+```java
+public PaseMensual crearPase(Long usuarioId, String tipo, Long espacioAsignado) {
+    // Strategy Pattern calcula precio
+    BigDecimal precio = precioPaseContext.calcularPrecio(tipo);
+    
+    pase.setPrecio(precio);
+    pase.setFechaVencimiento(LocalDateTime.now().plusDays(30));
+    return pase;
+}
+```
+
+---
+
+## 5. ENDPOINTS REST <a id="endpoints"></a>
+
+### 5.1 Reservas (7 endpoints)
+
+| Método | Endpoint | Descripción |
+|--------|----------|-------------|
+| POST | `/api/reservas` | Crear reserva |
+| GET | `/api/reservas` | Listar todas |
+| GET | `/api/reservas/{id}` | Obtener por ID |
+| GET | `/api/reservas/usuario/{id}` | Por usuario |
+| GET | `/api/reservas/activas` | Solo EN_USO |
+| GET | `/api/reservas/disponibilidad/{id}` | Verificar disponibilidad |
+| DELETE | `/api/reservas/{id}` | Cancelar |
+
+**Ejemplo Request:**
+```json
+POST /api/reservas
+{
+  "usuarioId": 1,
+  "espacioId": 10,
+  "fechaInicio": "2025-12-15T10:00:00",
+  "fechaFin": "2025-12-15T18:00:00"
+}
+```
+
+**Ejemplo Response:**
+```json
+{
+  "id": 1,
+  "qrCode": "PARKING-1-20251215100000-a3f2c1",
+  "estado": "CONFIRMADA",
+  "fechaCreacion": "2025-12-08T19:00:00"
+}
+```
+
+---
+
+### 5.2 Accesos (5 endpoints)
+
+| Método | Endpoint | Descripción |
+|--------|----------|-------------|
+| POST | `/api/accesos/check-in` | Registrar entrada |
+| POST | `/api/accesos/check-out` | Registrar salida |
+| POST | `/api/accesos/validar-qr` | Validar QR (lector) |
+| GET | `/api/accesos/check-ins` | Listar entradas |
+| GET | `/api/accesos/check-outs` | Listar salidas |
+
+**Flujo Check-In:**
+```json
+POST /api/accesos/check-in
+{
+  "reservaId": 1,
+  "dispositivoId": "LECTOR-PUERTA-A"
+}
+
+Response:
+{
+  "id": 1,
+  "horaEntrada": "2025-12-15T10:05:00",
+  "mensaje": "Check-in realizado exitosamente"
+}
+```
+
+**Flujo Check-Out:**
+```json
+POST /api/accesos/check-out
+{
+  "reservaId": 1
+}
+
+Response:
+{
+  "id": 1,
+  "horaSalida": "2025-12-15T18:00:00",
+  "tiempoTotalMinutos": 475,
+  "mensaje": "Check-out realizado. Tiempo: 7h 55min"
+}
+```
+
+---
+
+### 5.3 Pases Mensuales (7 endpoints)
+
+| Método | Endpoint | Descripción |
+|--------|----------|-------------|
+| POST | `/api/pases-mensuales` | Crear pase |
+| GET | `/api/pases-mensuales` | Listar todos |
+| GET | `/api/pases-mensuales/{id}` | Por ID |
+| GET | `/api/pases-mensuales/usuario/{id}` | Por usuario |
+| GET | `/api/pases-mensuales/vigentes` | Solo vigentes |
+| PUT | `/api/pases-mensuales/{id}/renovar` | Renovar (+30 días) |
+| DELETE | `/api/pases-mensuales/{id}` | Cancelar |
+
+**Tipos de Pases:**
+- **BASICO**
+- **PREMIUM**
+- **EMPRESARIAL**
+
+**Ejemplo:**
+```json
+POST /api/pases-mensuales
+{
+  "usuarioId": 1,
+  "tipo": "PREMIUM",
+  "espacioAsignado": 10
+}
+
+Response:
+{
+  "id": 1,
+  "tipo": "PREMIUM",
+  "precio": 300.00,
+  "fechaVencimiento": "2026-01-08T19:00:00",
+  "vigente": true
+}
+```
+
+---
+
+## 6. SISTEMA QR <a id="sistema-qr"></a>
+
+### 6.1 Formato del Código QR
+
+```
+PARKING-{id}-{timestamp}-{hash}
+```
+
+**Ejemplo:**
+```
+PARKING-1-20251215100000-a3f2c1
+```
+
+**Componentes:**
+- `PARKING`: Prefijo fijo
+- `1`: ID de reserva
+- `20251215100000`: Timestamp (yyyyMMddHHmmss)
+- `a3f2c1`: Hash de seguridad (6 caracteres)
+
+---
+
+### 6.2 Generación del Hash
+
+```java
+public String generarCodigo(Long reservaId, LocalDateTime fecha) {
+    String timestamp = fecha.format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
+    String data = reservaId + timestamp + SECRET_KEY;
+    String hash = SHA256(data).substring(0, 6);
+    
+    return "PARKING-" + reservaId + "-" + timestamp + "-" + hash;
+}
+```
+
+**Seguridad:**
+- Hash SHA-256 para evitar QR falsificados
+- Timestamp único por reserva
+- Validación de formato en backend
+
+---
+
+### 6.3 Flujo de Validación QR
+
+```
+1. Usuario crea reserva
+   ↓
+2. Backend genera: "PARKING-1-20251215100000-a3f2c1"
+   ↓
+3. Frontend genera imagen QR del código
+   ↓
+4. Usuario llega al parking
+   ↓
+5. Lector escanea QR → lee código
+   ↓
+6. POST /api/accesos/validar-qr {"codigoQR": "..."}
+   ↓
+7. Backend valida:
+   - Formato correcto
+   - Hash válido
+   - Reserva existe
+   - Estado CONFIRMADA
+   ↓
+8. Response: {"valido": true, "accion": "ABRIR_BARRERA"}
+   ↓
+9. Barrera se abre automáticamente
+```
+
+**Endpoint de Validación:**
+```json
+POST /api/accesos/validar-qr
+{
+  "codigoQR": "PARKING-1-20251215100000-a3f2c1",
+  "dispositivoId": "LECTOR-001"
+}
+
+Response (válido):
+{
+  "valido": true,
+  "accion": "ABRIR_BARRERA",
+  "mensaje": "Acceso permitido",
+  "reservaId": 1,
+  "checkInId": 1
+}
+
+Response (inválido):
+{
+  "valido": false,
+  "accion": "DENEGAR_ACCESO",
+  "mensaje": "Código QR inválido",
+  "razon": "Hash incorrecto"
+}
+```
+
+---
+
+## 7. VALIDACIONES <a id="validaciones"></a>
+
+### 7.1 Validaciones de Reserva
+
+| Validación | Regla | Error |
+|------------|-------|-------|
+| **Fechas** | inicio < fin | "Fecha inicio debe ser anterior" |
+| **Anticipación** | inicio > now + 1h | "Mínimo 1h de anticipación" |
+| **Duración** | (fin - inicio) ≤ 12h | "Máximo 12h de duración" |
+| **Disponibilidad** | Sin solapamiento | "Espacio no disponible" |
+
+### 7.2 Detección de Conflictos
+
+```java
+private boolean hayConflictoHorario(Reserva r, LocalDateTime inicio, LocalDateTime fin) {
+    // Conflicto si:
+    // - Nueva empieza antes que existente termine
+    // - Nueva termina después que existente empiece
+    
+    boolean terminaAntes = fin.isBefore(r.getFechaInicio());
+    boolean empiezaDespues = inicio.isAfter(r.getFechaFin());
+    
+    return !(terminaAntes || empiezaDespues);
+}
+```
+
+---
+
+### 7.3 Validaciones de Check-In
+
+- Reserva debe existir
+- Estado debe ser CONFIRMADA
+- No puede haber check-in previo
+
+### 7.4 Validaciones de Check-Out
+
+- Reserva debe existir
+- Estado debe ser EN_USO
+- Debe existir check-in previo
+
+---
+
+## 8. INSTALACIÓN Y USO <a id="instalacion"></a>
+
+### 8.1 Requisitos
+
+- Java 17+
+- Gradle 8.x
+- Puerto 8080 disponible
+
+### 8.2 Dependencias
+
+```gradle
+dependencies {
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    runtimeOnly 'com.h2database:h2'
+}
+```
+
+### 8.3 Ejecutar
+
+```bash
+# Compilar
+./gradlew clean build -x test
+
+# Ejecutar
 ./gradlew bootRun
 
+# El servidor arranca en http://localhost:8080
+```
 
-Servidor disponible en:
+### 8.4 Probar Endpoints
 
-http://localhost:8080
+```bash
+# Crear reserva
+curl -X POST http://localhost:8080/api/reservas \
+  -H "Content-Type: application/json" \
+  -d '{
+    "usuarioId": 1,
+    "espacioId": 10,
+    "fechaInicio": "2025-12-15T10:00:00",
+    "fechaFin": "2025-12-15T18:00:00"
+  }'
+
+# Listar reservas
+curl http://localhost:8080/api/reservas
+
+# Crear pase premium
+curl -X POST http://localhost:8080/api/pases-mensuales \
+  -H "Content-Type: application/json" \
+  -d '{
+    "usuarioId": 1,
+    "tipo": "PREMIUM",
+    "espacioAsignado": 10
+  }'
+```
+
+---
+
+## 📊 RESUMEN TÉCNICO
+
+### Patrones de Diseño
+- ✅ Strategy Pattern (precios pases)
+- ✅ DTO Pattern (API/domain separation)
+- ✅ Mapper Pattern (conversiones)
+- ✅ Service Layer Pattern (business logic)
+- ✅ Dependency Injection (IoC)
+
+### Funcionalidades
+- ✅ 19 endpoints REST
+- ✅ Sistema QR con seguridad
+- ✅ Validaciones de negocio
+- ✅ Gestión de estados
+- ✅ Cálculo automático de tiempos
+- ✅ 3 tipos de pases mensuales
+
+
+---
+
+## 🎯 CONCLUSIÓN
+
+Este módulo implementa un sistema completo y profesional de gestión de reservas de estacionamiento con:
+- Arquitectura en capas bien definida
+- Patrones de diseño aplicados correctamente
+- Código limpio y mantenible
+- Validaciones robustas
+- Sistema QR seguro y funcional
+- API REST completa y documentada
