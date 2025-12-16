@@ -100,6 +100,8 @@ com.parking.system/
 
 ### Diagrama 1: Módulo de Sedes y Espacios
 
+![Diagrama Sedes, Espacios y Enums](./Sedes y Espacios.png)
+
 **Muestra:**
 - Modelos: Sede, Espacio
 - Controllers y Services
