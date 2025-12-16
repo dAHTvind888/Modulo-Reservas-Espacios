@@ -110,14 +110,14 @@ com.parking.system/
 
 ---
 
-### Diagrama 2: Módulo de Pases Mensuales
+### Diagrama 2: Patrón Factory Method – Espacios
 
 ![Diagrama de Pases Mensuales](./Pases%20mensuales.jpg)
 
 **Muestra:**
-- Modelo PaseMensual
-- Implementación del Strategy Pattern
-- Cálculo dinámico de precios
+- Interfaz EspacioFactory
+- Fábricas concretas por tipo
+- EspacioFactoryProvider como selector de fábrica
 - Tipos: Básico, Premium, Empresarial
 - DTOs Request/Response
 - Mapper
