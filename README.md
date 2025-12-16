@@ -112,15 +112,12 @@ com.parking.system/
 
 ### Diagrama 2: Patrón Factory Method – Espacios
 
-![Diagrama de Pases Mensuales](./Pases%20mensuales.jpg)
+![Diagrama de Pases Mensuales](./SimpleFactory.jpg)
 
 **Muestra:**
 - Interfaz EspacioFactory
 - Fábricas concretas por tipo
 - EspacioFactoryProvider como selector de fábrica
-- Tipos: Básico, Premium, Empresarial
-- DTOs Request/Response
-- Mapper
 
 ---
 
