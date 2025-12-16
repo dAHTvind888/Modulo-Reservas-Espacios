@@ -112,7 +112,7 @@ com.parking.system/
 
 ### Diagrama 2: Patrón Factory Method – Espacios
 
-![Diagrama de Pases Mensuales](./SimpleFactory.jpg)
+![Diagrama de Pases Mensuales](./NewSimpleFactory.jpg)
 
 **Muestra:**
 - Interfaz EspacioFactory
